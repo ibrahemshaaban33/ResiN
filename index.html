@@ -1,0 +1,907 @@
+<!DOCTYPE html><html class="light" dir="rtl" lang="ar"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>iN POS - نظام إدارة المطاعم المتكامل</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800;900&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48; }
+        body { font-family: 'Rubik', sans-serif; background-color: #f9f9fc; color: #1a1c1e; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e2e5; border-radius: 10px; }
+        
+        .section-content { display: none; }
+        .section-content.active { display: flex; flex-direction: column; }
+        /* Special handling for POS section which is a flex row */
+        #section-pos.active { display: flex; flex-direction: row; }
+        
+        .nav-item-active { 
+            background-color: #87bcfe !important; 
+            color: #001c37 !important;
+            font-weight: 700 !important;
+        }
+
+        .active-category { background-color: #ff6b35 !important; color: white !important; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .chart-bar:hover { filter: brightness(1.1); transition: filter 0.2s; }
+        
+        .ticket-urgent { animation: pulse-border 2s infinite; }
+        @keyframes pulse-border {
+            0% { border-color: #ba1a1a; }
+            50% { border-color: #ffdad6; }
+            100% { border-color: #ba1a1a; }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                "tertiary": "#006878",
+                "surface-variant": "#e2e2e5",
+                "on-primary-fixed-variant": "#832600",
+                "secondary-container": "#87bcfe",
+                "primary-container": "#ff6b35",
+                "on-secondary-container": "#004b84",
+                "on-primary-fixed": "#390c00",
+                "on-tertiary-container": "#003740",
+                "error-container": "#ffdad6",
+                "on-primary-container": "#5f1900",
+                "on-tertiary-fixed-variant": "#004e5b",
+                "outline-variant": "#e1bfb5",
+                "on-tertiary-fixed": "#001f25",
+                "surface-container-low": "#f3f3f6",
+                "on-background": "#1a1c1e",
+                "secondary": "#24619d",
+                "on-error-container": "#93000a",
+                "surface-container": "#eeeef0",
+                "on-tertiary": "#ffffff",
+                "on-surface-variant": "#594139",
+                "surface-container-highest": "#e2e2e5",
+                "on-secondary": "#ffffff",
+                "surface-dim": "#dadadc",
+                "inverse-primary": "#ffb59d",
+                "secondary-fixed-dim": "#a1c9ff",
+                "surface": "#f9f9fc",
+                "secondary-fixed": "#d2e4ff",
+                "on-error": "#ffffff",
+                "error": "#ba1a1a",
+                "primary-fixed-dim": "#ffb59d",
+                "tertiary-fixed-dim": "#3ad8f5",
+                "surface-container-high": "#e8e8ea",
+                "primary-fixed": "#ffdbd0",
+                "outline": "#8d7168",
+                "tertiary-fixed": "#a7eeff",
+                "inverse-on-surface": "#f0f0f3",
+                "inverse-surface": "#2f3133",
+                "on-surface": "#1a1c1e",
+                "on-secondary-fixed": "#001c37",
+                "tertiary-container": "#00a8c1",
+                "surface-bright": "#f9f9fc",
+                "on-primary": "#ffffff",
+                "background": "#f9f9fc",
+                "primary": "#ab3500",
+                "surface-container-lowest": "#ffffff",
+                "surface-tint": "#ab3500",
+                "on-secondary-fixed-variant": "#004880"
+              },
+              "borderRadius": { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+              "spacing": { "margin-mobile": "16px", "xs": "4px", "margin-desktop": "32px", "lg": "40px", "gutter": "16px", "sm": "12px", "touch-target": "48px", "xl": "64px", "md": "24px", "base": "8px" },
+              "fontFamily": { "headline-lg-mobile": ["Rubik"], "label-numeric": ["Inter"], "display-lg": ["Rubik"], "body-md": ["Rubik"], "title-md": ["Rubik"], "caption": ["Rubik"], "body-lg": ["Rubik"], "headline-lg": ["Rubik"] },
+              "fontSize": {
+                "headline-lg-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "label-numeric": ["16px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                "display-lg": ["48px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                "title-md": ["20px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "caption": ["13px", {"lineHeight": "1.4", "fontWeight": "400"}],
+                "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "headline-lg": ["32px", {"lineHeight": "1.3", "fontWeight": "600"}]
+              }
+            }
+          }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface">
+<!-- LOGIN SCREEN -->
+<section class="fixed inset-0 z-[200] bg-surface flex items-center justify-center p-gutter" id="login-section">
+<div class="w-full max-w-md bg-white rounded-xl shadow-xl overflow-hidden border border-outline-variant">
+<div class="p-lg text-center bg-primary text-on-primary">
+<h1 class="font-display-lg text-display-lg mb-xs">iN POS</h1>
+<p class="font-body-md text-body-md opacity-90">نظام إدارة المطاعم الذكي</p>
+</div>
+<div class="p-lg">
+<div class="space-y-md">
+<div>
+<label class="block font-title-md text-title-md mb-xs text-right">المستخدم</label>
+<select class="w-full h-touch-target px-md border-2 border-outline-variant rounded-lg focus:border-primary outline-none transition-all text-right" id="user-select">
+<!-- Injected by JS -->
+</select>
+</div>
+<div>
+<label class="block font-title-md text-title-md mb-xs text-right">كلمة المرور</label>
+<input class="w-full h-touch-target px-md border-2 border-outline-variant rounded-lg focus:border-primary outline-none transition-all text-right" id="password-input" type="password" value="123456">
+</div>
+<button class="w-full h-touch-target bg-primary text-on-primary font-headline-lg text-body-lg rounded-lg hover:brightness-110 transition-all active:scale-95 flex items-center justify-center gap-base shadow-lg shadow-primary/20" onclick="app.login()">
+                        تسجيل الدخول
+                        <span class="material-symbols-outlined">login</span>
+</button>
+</div>
+<div class="mt-lg pt-lg border-t border-outline-variant flex flex-col items-center gap-base">
+<p class="text-caption font-caption text-on-surface-variant text-center">هل تواجه مشكلة؟</p>
+<a class="flex items-center gap-xs text-primary font-bold hover:underline" href="https://wa.me/96812345678" target="_blank">
+<span class="material-symbols-outlined">support_agent</span>
+                        تواصل مع الدعم الفني عبر واتساب
+                    </a>
+</div>
+</div>
+</div>
+</section>
+<!-- MAIN APP SHELL -->
+<div class="hidden min-h-screen" id="main-shell">
+<!-- TOP APP BAR -->
+<header class="bg-surface border-b border-outline-variant w-full h-16 flex justify-between items-center px-margin-desktop fixed top-0 z-50">
+<div class="flex items-center gap-md">
+<h1 class="font-display-lg text-headline-lg font-bold text-primary">iN POS</h1>
+<div class="h-8 w-[1px] bg-outline-variant"></div>
+<div class="flex flex-col">
+<span class="font-title-md text-title-md font-bold" id="header-subtitle">لوحة التحكم</span>
+<span class="text-caption opacity-70">عمان - تيرمينال</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden md:flex items-center gap-sm px-md py-xs bg-surface-container rounded-full">
+<span class="material-symbols-outlined text-primary">timer</span>
+<span class="font-label-numeric text-label-numeric" id="global-clock">00:00:00</span>
+</div>
+<div class="flex items-center gap-sm">
+<div class="text-right hidden sm:block">
+<p class="font-body-md font-bold leading-none" id="logged-username">محمود</p>
+<p class="text-caption text-on-surface-variant" id="logged-role">المدير</p>
+</div>
+<img alt="User Avatar" class="w-10 h-10 rounded-full border-2 border-primary object-cover" id="logged-avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHB-ZgP4HKNSUZcFJdr7DxQ3hPKqOcMmUps7444ceIx2ikl8qbTqohRfptDE_eQyLT80JJv-pkvC4-J0Hvi2ZLZ90Wm2iZFLb3VyQEo4EN_XZP4x9oc5rYnZCCjiP2upUw3gYmRHD_RFtK9RopoTJRl6Tpei6ztPJKuhiEBa8YgSmkPNgevMqbOmoqBlT6ojpGXQTI07Mw0_WMqhMiR6BPrScKp5YZiw2vzZfseQo08QnfWrGqi7UtW62rVj3DcBap5hWWqtVEIK7C">
+</div>
+</div>
+</header>
+<div class="flex pt-16">
+<!-- SIDE NAVIGATION -->
+<aside class="flex flex-col h-[calc(100vh-64px)] py-md px-sm fixed right-0 top-16 z-40 bg-surface-container-low w-64 border-l border-outline-variant">
+<nav class="flex-1 space-y-sm overflow-y-auto custom-scrollbar">
+<button class="nav-item w-full flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" id="nav-dashboard" onclick="app.switchTab('dashboard')">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-title-md">الرئيسية</span>
+</button>
+<button class="nav-item w-full flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" id="nav-pos" onclick="app.switchTab('pos')">
+<span class="material-symbols-outlined">point_of_sale</span>
+<span class="font-title-md">الكاشير</span>
+</button>
+<button class="nav-item w-full flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" id="nav-delivery" onclick="app.switchTab('delivery')">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="font-title-md">التوصيل</span>
+</button>
+<button class="nav-item w-full flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" id="nav-kds" onclick="app.switchTab('kds')">
+<span class="material-symbols-outlined">skillet</span>
+<span class="font-title-md">المطبخ</span>
+</button>
+<button class="nav-item w-full flex items-center gap-md p-md rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-all" id="nav-reports" onclick="app.switchTab('reports')">
+<span class="material-symbols-outlined">assessment</span>
+<span class="font-title-md">التقارير</span>
+</button>
+</nav>
+<div class="pt-md border-t border-outline-variant">
+<button class="w-full flex items-center gap-md p-md rounded-lg text-error hover:bg-error-container transition-all" onclick="app.logout()">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-title-md">تسجيل الخروج</span>
+</button>
+</div>
+</aside>
+<!-- MAIN CONTENT AREA -->
+<main class="mr-64 w-full min-h-[calc(100vh-64px)] bg-background overflow-x-hidden">
+<!-- SECTION: ADMIN DASHBOARD -->
+<section class="section-content p-margin-desktop" id="section-dashboard">
+<header class="flex justify-between items-end mb-lg">
+<div>
+<h2 class="font-display-lg text-display-lg font-bold text-on-surface">ملخص الأداء اليومي</h2>
+<p class="font-body-lg text-on-surface-variant">مرحباً بك مجدداً، إليك نظرة سريعة على مبيعات محطة عُمان.</p>
+</div>
+<div class="flex gap-sm bg-surface-container-low p-xs rounded-xl border border-outline-variant">
+<button class="bg-primary text-on-primary px-md py-sm rounded-lg font-bold shadow-md">اليوم</button>
+<button class="px-md py-sm rounded-lg font-medium text-on-surface-variant hover:bg-surface-variant">هذا الأسبوع</button>
+</div>
+</header>
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md mb-xl">
+<div class="bg-surface-container-lowest p-md rounded-xl border-t-4 border-primary shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined text-primary bg-primary-fixed p-sm rounded-lg">payments</span>
+<span class="text-caption font-bold text-green-600 flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">trending_up</span> 12%
+                                </span>
+</div>
+<p class="font-body-md text-on-surface-variant">إجمالي الإيرادات</p>
+<h3 class="font-display-lg text-headline-lg font-black text-on-surface" id="stat-revenue">0.000 <span class="text-title-md font-medium">ر.ع.</span></h3>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border-t-4 border-secondary shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined text-secondary bg-secondary-fixed p-sm rounded-lg">receipt_long</span>
+<span class="text-caption font-bold text-green-600 flex items-center gap-xs">
+<span class="material-symbols-outlined text-sm">trending_up</span> 5%
+                                </span>
+</div>
+<p class="font-body-md text-on-surface-variant">عدد الطلبات</p>
+<h3 class="font-display-lg text-headline-lg font-black text-on-surface" id="stat-orders">0 <span class="text-title-md font-medium">طلب</span></h3>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border-t-4 border-tertiary shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined text-tertiary bg-tertiary-fixed p-sm rounded-lg">avg_time</span>
+</div>
+<p class="font-body-md text-on-surface-variant">متوسط زمن التحضير</p>
+<h3 class="font-display-lg text-headline-lg font-black text-on-surface">12:30 <span class="text-title-md font-medium">دقيقة</span></h3>
+</div>
+<div class="bg-surface-container-lowest p-md rounded-xl border-t-4 border-outline shadow-sm hover:shadow-md transition-all">
+<div class="flex justify-between items-start mb-sm">
+<span class="material-symbols-outlined text-outline bg-outline-variant p-sm rounded-lg">group</span>
+</div>
+<p class="font-body-md text-on-surface-variant">الموظفين النشطين</p>
+<h3 class="font-display-lg text-headline-lg font-black text-on-surface" id="stat-active-staff">0 / 15</h3>
+</div>
+</div>
+<!-- SALES & STAFF MANAGEMENT GRID -->
+<div class="grid grid-cols-12 gap-lg mb-xl">
+<div class="col-span-12 lg:col-span-8 space-y-lg">
+<!-- Sales Chart -->
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-sm border border-outline-variant">
+<h4 class="font-headline-lg text-headline-lg font-bold mb-lg">أداء المبيعات اليومي</h4>
+<div class="flex items-end justify-between h-72 gap-md pt-md" id="sales-chart">
+<!-- Bars dynamic -->
+</div>
+</div>
+<!-- STAFF MANAGEMENT CARD -->
+<div class="bg-surface-container-lowest p-lg rounded-xl shadow-sm border border-outline-variant">
+<div class="flex justify-between items-center mb-lg">
+<h4 class="font-headline-lg text-headline-lg font-bold">إدارة الموظفين والسائقين</h4>
+<span class="material-symbols-outlined text-primary">badge</span>
+</div>
+<!-- Add Staff Form -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-md mb-xl p-md bg-surface-container-low rounded-xl border border-outline-variant">
+<div>
+<label class="block text-caption font-bold mb-xs">الاسم</label>
+<input class="w-full h-10 px-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none" id="new-staff-name" placeholder="اسم الموظف" type="text">
+</div>
+<div>
+<label class="block text-caption font-bold mb-xs">الدور</label>
+<select class="w-full h-10 px-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none" id="new-staff-role">
+<option value="Staff">موظف</option>
+<option value="Driver">سائق</option>
+</select>
+</div>
+<div>
+<label class="block text-caption font-bold mb-xs">كلمة المرور</label>
+<input class="w-full h-10 px-sm border border-outline-variant rounded-lg focus:ring-2 focus:ring-primary outline-none" id="new-staff-pass" placeholder="******" type="password">
+</div>
+<div class="flex items-end">
+<button class="w-full h-10 bg-primary text-white rounded-lg font-bold flex items-center justify-center gap-xs hover:brightness-110" onclick="app.addStaff()">
+<span class="material-symbols-outlined text-sm">add</span> إضافة
+                </button>
+</div>
+</div>
+<!-- Staff List Table -->
+<div class="overflow-x-auto">
+<h5 class="font-title-md text-title-md font-bold mb-md">الفريق الحالي</h5>
+<table class="w-full text-right">
+<thead>
+<tr class="bg-surface-container text-on-surface-variant">
+<th class="px-md py-sm font-bold text-caption rounded-tr-lg">الاسم</th>
+<th class="px-md py-sm font-bold text-caption">الدور</th>
+<th class="px-md py-sm font-bold text-caption rounded-tl-lg text-center">إجراءات</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant" id="staff-list-table">
+<!-- Dynamic -->
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<div class="col-span-12 lg:col-span-4 space-y-lg">
+<div class="bg-primary text-on-primary p-lg rounded-xl shadow-lg relative overflow-hidden flex flex-col h-full min-h-[300px]">
+<h4 class="font-headline-lg text-headline-lg font-bold mb-md">الأكثر مبيعاً</h4>
+<div class="flex flex-col gap-sm" id="best-sellers">
+<!-- Items dynamic -->
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- SECTION: POS (CASHIER) -->
+<section class="section-content h-[calc(100vh-64px)] flex flex-row overflow-hidden" id="section-pos">
+<div class="flex-1 flex flex-col overflow-hidden bg-surface-container-low">
+<div class="w-full p-gutter flex items-center gap-sm overflow-x-auto no-scrollbar bg-white shadow-sm border-b border-outline-variant shrink-0" id="category-tabs">
+<button class="active-category px-lg h-12 rounded-full font-bold flex items-center gap-xs shrink-0" data-category="all">
+<span class="material-symbols-outlined">restaurant_menu</span>الكل
+                            </button>
+<button class="bg-surface-container px-lg h-12 rounded-full font-medium flex items-center gap-xs shrink-0" data-category="burger">
+<span class="material-symbols-outlined">lunch_dining</span>البرجر
+                            </button>
+<button class="bg-surface-container px-lg h-12 rounded-full font-medium flex items-center gap-xs shrink-0" data-category="drinks">
+<span class="material-symbols-outlined">local_bar</span>المشروبات
+                            </button>
+<button class="bg-surface-container px-lg h-12 rounded-full font-medium flex items-center gap-xs shrink-0" data-category="pizza">
+<span class="material-symbols-outlined">local_pizza</span>البيتزا
+                            </button>
+</div>
+<div class="px-gutter pt-md flex justify-between items-center">
+<h2 class="text-title-md font-bold">قائمة المنتجات</h2>
+<div class="flex gap-sm">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="h-10 pr-10 pl-4 bg-white border border-outline-variant rounded-lg text-body-md w-48" id="pos-search" placeholder="بحث..." type="text">
+</div>
+<button class="bg-primary text-white px-md py-xs rounded-lg flex items-center gap-xs font-bold hover:brightness-110 shadow-sm" onclick="app.toggleProductModal(true)">
+<span class="material-symbols-outlined">add_circle</span>إضافة منتج
+                                </button>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-gutter grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-sm" id="product-grid">
+<!-- Products injected here -->
+</div>
+</div>
+<aside class="w-80 md:w-96 flex flex-col bg-white border-r border-outline-variant shadow-lg z-10 shrink-0">
+<div class="p-gutter border-b border-outline-variant flex justify-between items-center">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary">shopping_cart</span>
+<h2 class="font-headline-lg text-title-md font-black">طلب جديد</h2>
+</div>
+<button class="text-on-surface-variant hover:text-error p-sm rounded-lg" onclick="app.clearCart()">
+<span class="material-symbols-outlined">delete_sweep</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-gutter space-y-sm" id="cart-items">
+<!-- Cart Items -->
+</div>
+<div class="p-gutter bg-surface-container-low border-t border-outline-variant">
+<div class="space-y-sm mb-md">
+<div class="flex justify-between items-center text-body-md">
+<span class="text-on-surface-variant">المجموع</span>
+<span class="font-label-numeric font-bold" id="cart-subtotal">0.000 ر.ع.</span>
+</div>
+<div class="flex justify-between items-center text-title-md border-t border-outline-variant pt-sm mt-sm">
+<span class="font-black text-primary">الإجمالي</span>
+<span class="font-label-numeric font-black text-primary" id="cart-total">0.000 ر.ع.</span>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<button class="h-14 bg-secondary text-white rounded-xl font-bold flex items-center justify-center gap-xs shadow-md" onclick="alert('طباعة سريعة...')">
+<span class="material-symbols-outlined">print</span>الفاتورة
+                                </button>
+<button class="h-14 bg-primary text-white rounded-xl font-bold flex items-center justify-center gap-xs shadow-md" onclick="app.openPaymentModal()">
+<span class="material-symbols-outlined">payments</span>الدفع
+                                </button>
+</div>
+</div>
+</aside>
+</section>
+<!-- SECTION: DELIVERY -->
+<section class="section-content p-margin-desktop" id="section-delivery">
+<div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-lg gap-gutter">
+<div>
+<h2 class="font-display-lg text-headline-lg font-black text-on-background mb-xs">إدارة طلبات التوصيل</h2>
+<p class="text-body-lg text-on-surface-variant">متابعة الطلبات الجارية وتعيين السائقين</p>
+</div>
+<button class="bg-primary px-md py-sm rounded-lg flex items-center gap-sm font-bold text-on-primary shadow-lg shadow-primary/20" onclick="app.createNewDelivery()">
+<span class="material-symbols-outlined">add</span> طلب توصيل جديد
+                        </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-md" id="delivery-grid">
+<!-- Delivery cards injected here -->
+</div>
+</section>
+<!-- SECTION: KDS -->
+<section class="section-content p-margin-desktop bg-surface-container h-[calc(100vh-64px)] overflow-y-auto" id="section-kds">
+<div class="flex flex-wrap items-center justify-between gap-md mb-lg">
+<div class="flex gap-sm">
+<div class="bg-primary text-on-primary px-lg py-sm rounded-lg flex items-center gap-sm shadow-md">
+<span class="font-headline-lg" id="kds-count">0</span>
+<span class="font-body-md font-bold">طلبات نشطة</span>
+</div>
+</div>
+<button class="flex items-center gap-sm bg-white px-md py-sm rounded-lg font-body-md border border-outline-variant" onclick="app.renderKDS()">
+<span class="material-symbols-outlined">refresh</span>تحديث
+                        </button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-md" id="kds-grid">
+<!-- Kitchen tickets injected here -->
+</div>
+</section>
+<!-- SECTION: REPORTS -->
+<section class="section-content p-margin-desktop" id="section-reports">
+<div class="flex justify-between items-end mb-xl">
+<h2 class="font-display-lg text-display-lg font-bold">التقارير الحسابية</h2>
+<button class="bg-primary text-white px-lg py-3 rounded-lg font-bold shadow-lg" onclick="window.print()">طباعة التقرير</button>
+</div>
+<div class="bg-white rounded-xl border border-outline-variant overflow-hidden">
+<table class="w-full text-right">
+<thead class="bg-surface-container-low font-bold">
+<tr>
+<th class="px-lg py-md">الرقم</th>
+<th class="px-lg py-md">الوقت</th>
+<th class="px-lg py-md">المبلغ</th>
+<th class="px-lg py-md">الحالة</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant" id="reports-table">
+<!-- Rows dynamic -->
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</div>
+<!-- MODALS -->
+<!-- Payment Modal -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300] flex items-center justify-center hidden" id="payment-modal">
+<div class="bg-white w-[500px] rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+<div class="p-gutter bg-primary text-white flex justify-between items-center">
+<h3 class="font-bold text-title-md">إتمام عملية الدفع</h3>
+<button onclick="app.closePaymentModal()"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div class="p-lg space-y-md" id="payment-content"><div class="bg-surface-container p-md rounded-xl text-center mb-md">
+    <p class="text-on-surface-variant">المبلغ المطلوب</p>
+    <p class="text-4xl font-black text-primary" id="modal-total">0.000 ر.ع.</p>
+</div>
+<div class="space-y-sm">
+    <label class="block text-caption font-bold text-right">المبلغ المدفوع</label>
+    <input type="number" id="amount-paid-input" step="0.001" class="w-full h-14 text-2xl font-black text-center border-2 border-outline-variant rounded-xl focus:border-primary outline-none" placeholder="0.000">
+</div>
+<button class="w-full h-14 mt-md bg-primary text-white rounded-xl font-bold text-xl shadow-lg flex items-center justify-center gap-sm active:scale-95 transition-all" onclick="app.processPayment('Cash')">
+    تأكيد
+    <span class="material-symbols-outlined">check_circle</span>
+</button></div>
+<div class="p-xl hidden flex flex-col items-center justify-center text-center space-y-md" id="payment-success">
+<div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[48px]">check_circle</span>
+</div>
+<h4 class="text-headline-lg font-bold">تمت العملية بنجاح</h4>
+<p class="text-body-lg text-on-surface-variant">شكرا لزيارة مطعمنا</p>
+<button class="px-xl h-12 bg-primary text-white rounded-full font-bold" onclick="app.closePaymentModal()" style="opacity: 0;">طلب جديد</button>
+</div>
+</div>
+</div>
+<!-- Product Modal -->
+<div class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[300] flex items-center justify-center hidden" id="product-modal">
+<div class="bg-white w-[400px] rounded-2xl shadow-xl overflow-hidden">
+<div class="p-gutter bg-primary text-white flex justify-between items-center">
+<h3 class="font-bold">إدارة المنتج</h3>
+<button onclick="app.toggleProductModal(false)"><span class="material-symbols-outlined">close</span></button>
+</div>
+<div class="p-gutter space-y-md">
+<div>
+<label class="block text-caption font-bold mb-xs">اسم المنتج</label>
+<input class="w-full h-12 border border-outline-variant rounded-lg px-sm focus:ring-primary focus:ring-2 outline-none" id="prod-name" type="text">
+</div>
+<div>
+<label class="block text-caption font-bold mb-xs">السعر (ر.ع.)</label>
+<input class="w-full h-12 border border-outline-variant rounded-lg px-sm focus:ring-primary focus:ring-2 outline-none" id="prod-price" step="0.001" type="number">
+</div>
+<button class="w-full h-14 bg-primary text-white rounded-xl font-bold shadow-lg" onclick="app.saveProduct()">تأكيد الحفظ</button>
+</div>
+</div>
+</div>
+<!-- Access Denied Modal -->
+<div class="fixed inset-0 z-[400] flex items-center justify-center hidden" id="access-modal">
+<div class="absolute inset-0 bg-on-background/60 backdrop-blur-sm"></div>
+<div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-lg relative z-10 text-center space-y-md">
+<div class="w-20 h-20 bg-error-container text-error rounded-full flex items-center justify-center mx-auto">
+<span class="material-symbols-outlined text-[48px]">lock</span>
+</div>
+<h3 class="font-headline-lg font-bold">تنبيه الوصول</h3>
+<p class="text-on-surface-variant font-body-lg">Specialized for Manager<br>عذراً، هذا القسم مخصص للمدير فقط.</p>
+<button class="w-full h-14 bg-primary text-white rounded-xl font-bold shadow-lg" onclick="document.getElementById('access-modal').classList.add('hidden')">مفهوم</button>
+</div>
+</div>
+<script>
+        const DEFAULT_PRODUCTS = [
+            { id: 1, name: 'كلاسيك تشيز برجر', price: 2.500, category: 'burger', img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=200' },
+            { id: 2, name: 'بيتزا مارجريتا', price: 3.800, category: 'pizza', img: 'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=200' },
+            { id: 3, name: 'موخيتو ليمون', price: 1.200, category: 'drinks', img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=200' },
+            { id: 4, name: 'برجر دجاج سبايسي', price: 2.800, category: 'burger', img: 'https://images.unsplash.com/photo-1625813506062-0aeb1d7a094b?w=200' }
+        ];
+
+        const DEFAULT_USERS = [
+            { name: 'محمود', role: 'Manager', pass: '123456' },
+            { name: 'إبراهيم', role: 'Staff', pass: '123456' }
+        ];
+
+        const app = {
+            user: null,
+            cart: [],
+            products: [],
+            orders: [],
+            staff: [],
+
+            init() {
+                this.loadData();
+                this.updateTime();
+                this.renderLoginOptions();
+                setInterval(() => this.updateTime(), 1000);
+            },
+
+            loadData() {
+                this.products = JSON.parse(localStorage.getItem('in_pos_products')) || DEFAULT_PRODUCTS;
+                this.orders = JSON.parse(localStorage.getItem('in_pos_orders')) || [];
+                this.staff = JSON.parse(localStorage.getItem('in_pos_staff')) || DEFAULT_USERS;
+            },
+
+            saveData() {
+                localStorage.setItem('in_pos_products', JSON.stringify(this.products));
+                localStorage.setItem('in_pos_orders', JSON.stringify(this.orders));
+                localStorage.setItem('in_pos_staff', JSON.stringify(this.staff));
+                this.refreshAllTabs();
+                this.renderLoginOptions();
+            },
+
+            renderLoginOptions() {
+                const select = document.getElementById('user-select');
+                if(!select) return;
+                select.innerHTML = this.staff.map(u => `
+                    <option value="${u.name}">${u.name} (${u.role === 'Manager' ? 'مدير النظام' : u.role === 'Staff' ? 'كاشير' : 'سائق'})</option>
+                `).join('');
+            },
+
+            login() {
+                const userName = document.getElementById('user-select').value;
+                const pass = document.getElementById('password-input').value;
+                
+                const foundUser = this.staff.find(u => u.name === userName);
+                
+                if(!foundUser || foundUser.pass !== pass) {
+                    return alert('كلمة المرور خاطئة');
+                }
+
+                this.user = {
+                    name: foundUser.name,
+                    role: foundUser.role
+                };
+
+                document.getElementById('logged-username').innerText = this.user.name;
+                document.getElementById('logged-role').innerText = this.user.role === 'Manager' ? 'المدير' : this.user.role === 'Staff' ? 'كاشير' : 'سائق';
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('main-shell').classList.remove('hidden');
+
+                this.switchTab(this.user.role === 'Manager' ? 'dashboard' : 'pos');
+            },
+
+            logout() {
+                this.user = null;
+                document.getElementById('main-shell').classList.add('hidden');
+                document.getElementById('login-section').classList.remove('hidden');
+            },
+
+            switchTab(tabId) {
+                // Access control check
+                if(this.user.role !== 'Manager' && (tabId === 'dashboard' || tabId === 'reports')) {
+                    document.getElementById('access-modal').classList.remove('hidden');
+                    return;
+                }
+
+                // SPA Logic: Toggle visibility of sections
+                document.querySelectorAll('.section-content').forEach(s => {
+                    s.classList.remove('active');
+                    s.style.display = 'none'; 
+                });
+                
+                const targetSection = document.getElementById(`section-${tabId}`);
+                if(targetSection) {
+                    targetSection.classList.add('active');
+                    targetSection.style.display = 'flex';
+                }
+
+                document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('nav-item-active'));
+                const targetNav = document.getElementById(`nav-${tabId}`);
+                if(targetNav) {
+                    targetNav.classList.add('nav-item-active');
+                    document.getElementById('header-subtitle').innerText = targetNav.querySelector('span:last-child').innerText;
+                }
+
+                this.renderTab(tabId);
+            },
+
+            refreshAllTabs() {
+                const activeSection = document.querySelector('.section-content.active');
+                if(activeSection) {
+                    const id = activeSection.id.replace('section-', '');
+                    this.renderTab(id);
+                }
+            },
+
+            renderTab(tabId) {
+                if(tabId === 'dashboard') this.renderDashboard();
+                if(tabId === 'pos') this.renderPOS();
+                if(tabId === 'delivery') this.renderDelivery();
+                if(tabId === 'kds') this.renderKDS();
+                if(tabId === 'reports') this.renderReports();
+            },
+
+            renderDashboard() {
+                const rev = this.orders.reduce((s, o) => s + o.total, 0);
+                document.getElementById('stat-revenue').innerHTML = `${rev.toFixed(3)} <span class="text-title-md font-medium">ر.ع.</span>`;
+                document.getElementById('stat-orders').innerHTML = `${this.orders.length} <span class="text-title-md font-medium">طلب</span>`;
+                document.getElementById('stat-active-staff').innerText = `${this.staff.length} / 15`;
+
+                const chart = document.getElementById('sales-chart');
+                const days = ['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'];
+                chart.innerHTML = days.map(d => `
+                    <div class="flex flex-col items-center gap-sm flex-1 h-full">
+                        <div class="w-full bg-surface-container-highest rounded-t-lg relative flex items-end h-full">
+                            <div class="chart-bar w-full bg-secondary-container rounded-t-lg transition-all" style="height: ${Math.random() * 70 + 20}%;"></div>
+                        </div>
+                        <span class="text-caption">${d}</span>
+                    </div>
+                `).join('');
+
+                const sellers = document.getElementById('best-sellers');
+                sellers.innerHTML = this.products.slice(0, 3).map(p => `
+                    <div class="flex items-center gap-md bg-white/10 p-sm rounded-xl border border-white/20">
+                        <img class="w-10 h-10 rounded object-cover" src="${p.img || ''}">
+                        <div class="flex-1"><p class="font-bold text-sm">${p.name}</p></div>
+                        <span class="font-bold text-xs">${Math.floor(Math.random() * 20) + 5} طلب</span>
+                    </div>
+                `).join('');
+
+                this.renderStaffList();
+            },
+
+            addStaff() {
+                const name = document.getElementById('new-staff-name').value.trim();
+                const role = document.getElementById('new-staff-role').value;
+                const pass = document.getElementById('new-staff-pass').value.trim();
+
+                if(!name || !pass) return alert('يرجى إكمال البيانات');
+                
+                if(this.staff.find(u => u.name === name)) {
+                    return alert('هذا المستخدم موجود مسبقاً');
+                }
+
+                this.staff.push({ name, role, pass });
+                this.saveData();
+                
+                // Clear fields
+                document.getElementById('new-staff-name').value = '';
+                document.getElementById('new-staff-pass').value = '';
+                
+                this.renderDashboard();
+            },
+
+            deleteStaff(name) {
+                if(name === 'محمود') return alert('لا يمكن حذف المدير الرئيسي');
+                if(confirm(`هل أنت متأكد من حذف ${name}؟`)) {
+                    this.staff = this.staff.filter(u => u.name !== name);
+                    this.saveData();
+                    this.renderDashboard();
+                }
+            },
+
+            renderStaffList() {
+                const tbody = document.getElementById('staff-list-table');
+                if(!tbody) return;
+                tbody.innerHTML = this.staff.map(u => `
+                    <tr class="hover:bg-surface-container-low">
+                        <td class="px-md py-sm font-bold">${u.name}</td>
+                        <td class="px-md py-sm">
+                            <span class="px-2 py-1 rounded-full text-[10px] font-bold ${u.role === 'Manager' ? 'bg-primary-fixed text-on-primary-fixed' : u.role === 'Driver' ? 'bg-secondary-fixed text-on-secondary-fixed' : 'bg-surface-container-highest text-on-surface-variant'}">
+                                ${u.role === 'Manager' ? 'مدير' : u.role === 'Staff' ? 'موظف' : 'سائق'}
+                            </span>
+                        </td>
+                        <td class="px-md py-sm text-center">
+                            <button onclick="app.deleteStaff('${u.name}')" class="text-error hover:bg-error-container p-1 rounded transition-colors ${u.name === 'محمود' ? 'opacity-20 cursor-not-allowed' : ''}">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            },
+
+            renderPOS(cat = 'all') {
+                const grid = document.getElementById('product-grid');
+                const filtered = cat === 'all' ? this.products : this.products.filter(p => p.category === cat);
+                
+                grid.innerHTML = filtered.map(p => `
+                    <div class="group bg-secondary text-on-secondary rounded-lg shadow-sm p-2 cursor-pointer active:scale-95 transition-all aspect-square text-center relative overflow-hidden" onclick="app.addToCart(${p.id})">
+                        <div class="flex flex-col items-center h-full justify-center">
+                            <h3 class="font-bold text-[11px] leading-tight mb-1">${p.name}</h3>
+                            <span class="font-label-numeric font-bold text-[10px] opacity-90">${p.price.toFixed(3)} ر.ع.</span>
+                            <span class="material-symbols-outlined text-[18px] mt-1">add_circle</span>
+                        </div>
+                    </div>
+                `).join('');
+                this.updateCartUI(); 
+            },
+
+            addToCart(id) {
+                const product = this.products.find(p => p.id === id);
+                const item = this.cart.find(i => i.id === id);
+                if(item) item.qty++;
+                else this.cart.push({...product, qty: 1});
+                this.updateCartUI();
+            },
+
+            updateCartUI() {
+                const cont = document.getElementById('cart-items');
+                if(!cont) return;
+                
+                if(this.cart.length === 0) {
+                    cont.innerHTML = '<div class="flex flex-col items-center justify-center h-full opacity-30 py-20"><span class="material-symbols-outlined text-6xl">shopping_basket</span><p>السلة فارغة</p></div>';
+                } else {
+                    cont.innerHTML = this.cart.map(i => `
+                        <div class="flex items-center gap-sm p-sm bg-surface rounded-xl border border-outline-variant">
+                            <div class="flex-1">
+                                <h4 class="font-bold text-sm">${i.name}</h4>
+                                <p class="text-primary font-bold text-xs">${(i.price * i.qty).toFixed(3)} ر.ع.</p>
+                            </div>
+                            <div class="flex items-center gap-xs bg-white rounded-lg p-xs border border-outline-variant">
+                                <button onclick="app.updateQty(${i.id}, -1)" class="w-7 h-7 flex items-center justify-center rounded bg-surface-container">-</button>
+                                <span class="w-4 text-center font-bold text-xs">${i.qty}</span>
+                                <button onclick="app.updateQty(${i.id}, 1)" class="w-7 h-7 flex items-center justify-center rounded bg-primary text-white">+</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+                const sub = this.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+                document.getElementById('cart-subtotal').innerText = sub.toFixed(3) + ' ر.ع.';
+                document.getElementById('cart-total').innerText = sub.toFixed(3) + ' ر.ع.';
+            },
+
+            updateQty(id, delta) {
+                const item = this.cart.find(i => i.id === id);
+                if(item) {
+                    item.qty += delta;
+                    if(item.qty <= 0) this.cart = this.cart.filter(i => i.id !== id);
+                }
+                this.updateCartUI();
+            },
+
+            clearCart() { this.cart = []; this.updateCartUI(); },
+
+            openPaymentModal() {
+                if(this.cart.length === 0) return;
+                const sub = this.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+                document.getElementById('modal-total').innerText = sub.toFixed(3) + ' ر.ع.';
+                document.getElementById('payment-modal').classList.remove('hidden');
+                document.getElementById('payment-content').classList.remove('hidden');
+                document.getElementById('payment-success').classList.add('hidden');
+            },
+
+            closePaymentModal() { document.getElementById('payment-modal').classList.add('hidden'); },
+
+            processPayment(method) {
+                const sub = this.cart.reduce((s, i) => s + (i.price * i.qty), 0);
+                const order = {
+                    id: Math.floor(1000 + Math.random() * 9000),
+                    items: [...this.cart],
+                    total: sub,
+                    method: method,
+                    status: 'New',
+                    time: new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'}),
+                    customer: 'عميل عام'
+                };
+                this.orders.unshift(order);
+                this.saveData();
+                this.cart = [];
+                this.updateCartUI();
+                
+                document.getElementById('payment-content').classList.add('hidden');
+                document.getElementById('payment-success').classList.remove('hidden');
+            },
+
+            renderDelivery() {
+                const grid = document.getElementById('delivery-grid');
+                grid.innerHTML = this.orders.map(o => `
+                    <div class="bg-white p-md rounded-xl border border-outline-variant shadow-sm border-r-4 border-r-secondary flex flex-col">
+                        <div class="flex justify-between items-center mb-md">
+                            <span class="bg-secondary-fixed text-on-secondary-fixed px-sm py-xs rounded font-bold text-caption">#${o.id}</span>
+                            <span class="text-caption font-bold text-on-surface-variant">${o.time}</span>
+                        </div>
+                        <div class="flex-1 space-y-xs mb-md">
+                            <h3 class="text-title-md font-bold">${o.customer}</h3>
+                            <p class="text-body-md text-on-surface-variant flex items-center gap-xs">
+                                <span class="material-symbols-outlined text-[18px]">location_on</span> مسقط، عمان
+                            </p>
+                            <p class="text-headline-lg font-black text-primary">${o.total.toFixed(3)} ر.ع.</p>
+                        </div>
+                        <div class="pt-md border-t flex gap-sm">
+                            <button class="flex-1 bg-surface-container py-sm rounded-lg font-bold text-xs">تعديل</button>
+                            <button class="flex-1 bg-primary text-white py-sm rounded-lg font-bold text-xs">تعيين سائق</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            renderKDS() {
+                const grid = document.getElementById('kds-grid');
+                const active = this.orders.filter(o => o.status === 'New');
+                document.getElementById('kds-count').innerText = active.length;
+
+                grid.innerHTML = active.map(o => `
+                    <div class="bg-white rounded-xl border border-outline-variant shadow-md overflow-hidden flex flex-col">
+                        <div class="bg-tertiary text-white p-sm flex justify-between">
+                            <span class="font-bold">#${o.id}</span>
+                            <span class="font-label-numeric">${o.time}</span>
+                        </div>
+                        <div class="p-md flex-1 space-y-sm min-h-[120px]">
+                            ${o.items.map(i => `<div class="flex justify-between border-b border-surface-variant pb-xs"><span>${i.qty}x ${i.name}</span></div>`).join('')}
+                        </div>
+                        <div class="p-sm bg-surface-container-low">
+                            <button onclick="app.updateStatus(${o.id}, 'Ready')" class="w-full bg-primary text-white py-2 rounded-lg font-bold">جاهز</button>
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            updateStatus(id, status) {
+                const o = this.orders.find(x => x.id === id);
+                if(o) { o.status = status; this.saveData(); }
+            },
+
+            renderReports() {
+                const tbody = document.getElementById('reports-table');
+                tbody.innerHTML = this.orders.map(o => `
+                    <tr class="hover:bg-surface-container-low transition-colors">
+                        <td class="px-lg py-md font-bold text-secondary">#${o.id}</td>
+                        <td class="px-lg py-md">${o.time}</td>
+                        <td class="px-lg py-md font-black text-primary">${o.total.toFixed(3)} ر.ع.</td>
+                        <td class="px-lg py-md"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">${o.status}</span></td>
+                    </tr>
+                `).join('');
+            },
+
+            toggleProductModal(show) {
+                const m = document.getElementById('product-modal');
+                show ? m.classList.remove('hidden') : m.classList.add('hidden');
+            },
+
+            saveProduct() {
+                const name = document.getElementById('prod-name').value;
+                const price = parseFloat(document.getElementById('prod-price').value);
+                if(!name || isNaN(price)) return;
+                
+                const newProd = {
+                    id: Date.now(),
+                    name: name,
+                    price: price,
+                    category: 'burger',
+                    img: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=200'
+                };
+                this.products.push(newProd);
+                this.saveData();
+                this.toggleProductModal(false);
+                alert('تم حفظ المنتج بنجاح');
+            },
+
+            updateTime() {
+                const clock = document.getElementById('global-clock');
+                if(clock) clock.innerText = new Date().toLocaleTimeString('en-US', { hour12: false });
+            },
+
+            createNewDelivery() {
+                alert('ميزة إنشاء طلب توصيل قيد التطوير');
+            }
+        };
+
+        // Category Filter Event
+        document.getElementById('category-tabs').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if(!btn) return;
+            document.querySelectorAll('#category-tabs button').forEach(b => b.classList.remove('active-category'));
+            btn.classList.add('active-category');
+            app.renderPOS(btn.dataset.category);
+        });
+
+        window.onload = () => app.init();
+    </script>
+
+
+</body></html>
